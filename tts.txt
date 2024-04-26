@@ -1,0 +1,111 @@
+Created by Pyla DURGA PRASAD_HELI on Apr 24, 2024
+=======================
+// To view the ssl information of remote server
+openssl s_client -connect IP:PORT
+
+// crt,key,chain convert to p12 format
+openssl pkcs12 -export -out filename.p12 -inkey  keyfilename.key -in  servercertfilename.crt -certfile  chaincertfilename.crt
+    example : openssl pkcs12 -export -out origin-iam.dbs.com.tw.p12 -inkey  origin-iam.dbs.com.tw.key -in  origin-iam.dbs.com.tw.crt -certfile  origin-iam.dbs.com.tw.CA.crt
+
+// To view the ssl informaton from p12 file
+openssl pkcs12 -info -nodes -in filename.p12
+openssl pkcs12 -info -in yourfilename. p12 
+
+//To remove the p12 file password
+openssl pkcs12 -in cert.p12 -nodes -out temp.pem
+openssl pkcs12 -export -in temp.pem -out cert.p12
+
+
+openssl pkcs12 -export -out certificate.pfx -inkey privateKey.key -in certificate.crt -certfile CACert.crt
+openssl pkcs12 -export -out certificate.p12 -inkey privateKey.key -in certificate.crt -certfile ca-bundle-client.crt
+
+=========================
+
+// Without Password P12
+
+keytool -importkeystore -srckeystore ssiamigw.uat.dbs.com.jks -destkeystore ssiamigw.uat.dbs.com.p12 -srcstoretype JKS -deststoretype PKCS12
+openssl pkcs12 -in ssiamigw.uat.dbs.com.cer -inkey ssiamigw.uat.dbs.com.key -export -out ssiamigw.uatt.dbs.com.p12
+
+//p12 (cert, key, chain)
+openssl pkcs12 -export -out origin-uat-iam.dbs.com.tw.p12 -inkey origin-uat-iam.dbs.com.tw.key -in origin-uat-iam.dbs.com.tw.crt -certfile origin-uat-iam.dbs.com.tw.CA.crt
+
+//view p12 file
+openssl pkcs12 -info -nodes -in origin-uat-iam.dbs.com.tw.p12
+
+============================================================================================================================
+// to genereate private key & CSR key (with only 1 SAN)
+openssl req -new -key yourdomain.key -out yourdomain.csr -subj "/C=US/ST=Utah/L=Lehi/O=Your Company, Inc./OU=IT/CN=yourdomain.com"
+openssl req -newkey rsa:2048 -nodes -keyout domain.key -out domain.csr  // generate key and csr at a time
+openssl req -key domain.key -new -out domain.csr     // generate csr
+
+// to view the cert info
+openssl x509 -text -in yourdomain.crt -noout
+
+// to grep only alias names from jks file 
+keytool -list -v  -keystore /app/jboss/ssl/x01gibsgapp.jks | grep 'Alias name:'
+
+// openssl to remove password from key file.
+openssl rsa -in futurestudio_with_pass.key -out futurestudio.key 
+ 
+// To import new cert,root,intermeidate certs into existing JKS file
+/opt/jboss/jdk1.8.0_77/bin/keytool -import -trustcacerts -alias Root -file Root.crt -keystore /app/jboss/ssl/x01gibsgapp.jks
+/opt/jboss/jdk1.8.0_77/bin/keytool -import -trustcacerts -alias Intermediate -file Intermediate.crt -keystore /app/jboss/ssl/x01gibsgapp.jks
+/opt/jboss/jdk1.8.0_77/bin/keytool -import -trustcacerts -alias x01gibsgapp -file ServerCertificate.crt -keystore /app/jboss/ssl/x01gibsgapp.jks
+
+// To view cert info from jks file & to view specific cert info
+/opt/jboss/jdk1.8.0_77/bin/keytool -printcert -v -file /app/jboss/ssl/x01gibsgapp.jks
+/opt/jboss/jdk1.8.0_77/bin/keytool -list -v -keystore x01gibsgapp.jks -alias x01gibsgapp
+
+// To generate CSR key from private key
+keytool -certreq -alias mydomain -keystore KeyStore.jks -file mydomain.csr
+
+// To check private key is matching with cert.
+openssl x509 -noout -modulus -in internet-banking.dbs.com.sg.crt | openssl md5
+openssl rsa  -noout -modulus -in internet-banking.dbs.com.sg.key | openssl md5
+openssl req -noout -modulus -in internet-banking.dbs.com.sg.csr | openssl md5
+=====================================================================================================================
+
+Openssl pkcs12 -export -out <new_p12_filename>.p12 -inkey <existing_filename>.key -in <certificate_filename>.crt 
+openssl x509 -noout -in <certificate_filename>.crt -issuer
+
+========================================================================================================
+
+To list the private key and cert from JKS keystore
+Syntax: keytool -list -v -keystore <jks keystore> 
+
+To import trusted root and intermediate certs to keystore
+keytool -import -alias DBSBank-Ent-SubCA -keystore origin-uat-iam.dbs.com.sg.jks -keypass origin-uat-iam.dbs.com.sg -trustcacerts -file ./DBSBank-Ent-SubCA.crt -storepass origin-uat-iam.dbs.com.sg -noprompt
+keytool -import -alias DBSBank-Root-CA -keystore <jks keystore> -keypass <keystore password> -trustcacerts -file ./DBSBank-Root-CA.crt -storepass <keystore password> -noprompt
+
+=============================================================================================================
+
+// to view JKS cert information
+/opt/jkd_1.8_212/bin/keytool -list -keystore origin-uat-iam.dbs.com.sg.jks
+
+// To remove the existing old certs from jks file
+keytool -delete -alias root -keystore origin-uat-iam.dbs.com.sg.jks
+keytool -delete -alias rootcert -keystore origin-uat-iam.dbs.com.sg.jks
+keytool -delete -alias intermediate -keystore origin-uat-iam.dbs.com.sg.jks
+keytool -delete -alias intermediatecert -keystore origin-uat-iam.dbs.com.sg.jks
+
+// convert jks to pkcs12 format
+keytool -importkeystore -srckeystore origin-uat-iam.dbs.com.sg.jks -destkeystore origin-uat-iam.dbs.com.sg.jks.p12 -srcstoretype jks -deststoretype pkcs12
+
+// convert pkcs12 file format to PEM format
+openssl pkcs12 -in origin-uat-iam.dbs.com.sg.p12 -out origin-uat-iam.dbs.com.sg.pem
+
+// convert PEM formated primary key, Certificate , ROOT and Intermediate key into new file (P12 format).
+openssl pkcs12 -export -out Cert.p12 -in ServerCertificate.crt -inkey origin-uat-iam.dbs.com.sg.pem -certfile CACert.crt -passin pass:origin-uat-iam.dbs.com.sg -passout pass:origin-uat-iam.dbs.com.sg
+
+// to display content in p12 file
+openssl pkcs12 -info -nodes -in Cert.p12
+
+// remove password from p12 file
+openssl pkcs12 -in Cert.p12 -nodes -out temp.pem
+openssl pkcs12 -export -in temp.pem -out origin-uat-iam.dbs.com.sg_nopass.p12
+===================================================================================================================
+// WAS or IHS level SSL info to view
+#./gskcapicmd -cert -list -db agidribdb.kdb -pw agidribdb
+./gskcapicmd -cert -list -db agidribdb.kdb -pw agidribdb -expiry 100
+./gskcapicmd -cert -details -db agidribdb.kdb -pw agidribdb -label agidribdb
+========================================================================
